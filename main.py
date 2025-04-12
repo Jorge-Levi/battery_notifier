@@ -1,9 +1,10 @@
 import sys
 from PySide6.QtWidgets import QApplication
 from PySide6.QtNetwork import QLocalSocket, QLocalServer
+from tray_icon import TrayApp
 
 
-def is_already_running(app_id="BatteryNotifierApp"):
+def is_already_running(app_id="BatteryNotifierApp") -> bool:
     socket = QLocalSocket()
     socket.connectToServer(app_id)
     if socket.waitForConnected(100):
@@ -14,11 +15,18 @@ def is_already_running(app_id="BatteryNotifierApp"):
     return False
 
 
-if is_already_running():
-    sys.exit()
+def main():
+    if is_already_running():
+        print("[INFO] BatteryNotifier ya se está ejecutando.")
+        sys.exit()
 
-from tray_icon import TrayApp
+    try:
+        app = TrayApp()
+        app.run()
+    except Exception as e:
+        print(f"[ERROR] Fallo en la ejecución de la app: {e}")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    app = TrayApp()
-    app.run()
+    main()
