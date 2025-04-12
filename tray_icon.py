@@ -1,12 +1,21 @@
 # tray_icon.py
 
+import os
+import sys
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtGui import QIcon
 from PySide6.QtCore import QTimer
 from battery_monitor import BatteryMonitor
-import sys
-import os
+
+
+def resource_path(relative_path):
+    """
+    Obtiene la ruta absoluta de recursos, compatible tanto en desarrollo
+    como cuando se empaqueta con PyInstaller (.exe)
+    """
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 
 class TrayApp:
@@ -14,13 +23,13 @@ class TrayApp:
         self.app = QApplication(sys.argv)
         self.app.setQuitOnLastWindowClosed(False)
 
-        # Cargar iconos
-        icon_path_on = os.path.join("assets", "icon_on.png")
-        icon_path_off = os.path.join("assets", "icon_off.png")
+        # Rutas a los iconos
+        icon_path_on = resource_path(os.path.join("assets", "icon_on.png"))
+        icon_path_off = resource_path(os.path.join("assets", "icon_off.png"))
         self.icon_on = QIcon(icon_path_on)
         self.icon_off = QIcon(icon_path_off)
 
-        # Inicializa como activo
+        # Inicia monitor
         self.monitor = BatteryMonitor()
         self.is_active = True
 
@@ -30,7 +39,7 @@ class TrayApp:
         self.tray.setToolTip("BatteryNotifier - Monitoreo activo")
         self.tray.setVisible(True)
 
-        # Menú de clic derecho
+        # Menú contextual (clic derecho)
         self.menu = QMenu()
 
         self.toggle_action = QAction("Desactivar monitoreo")
@@ -43,15 +52,15 @@ class TrayApp:
 
         self.tray.setContextMenu(self.menu)
 
-        # Timer para chequear batería cada minuto
+        # Temporizador para verificar batería cada minuto
         self.timer = QTimer()
         self.timer.timeout.connect(self.run_monitor)
-        self.timer.start(60 * 1000)  # cada 60 segundos
+        self.timer.start(60 * 1000)  # 60 segundos
 
-        # Permitir acción con clic izquierdo
+        # Acción para clic izquierdo
         self.tray.activated.connect(self.on_click)
 
-        # Primera revisión inmediata
+        # Revisión inicial inmediata
         self.run_monitor()
 
     def run_monitor(self):

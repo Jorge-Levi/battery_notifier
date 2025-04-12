@@ -1,12 +1,13 @@
 # battery_monitor.py
 
 import psutil
-from plyer import notification
+from win10toast import ToastNotifier
 
 
 class BatteryMonitor:
     def __init__(self):
         self.last_state = None
+        self.notifier = ToastNotifier()
 
     def check_battery(self):
         battery = psutil.sensors_battery()
@@ -17,16 +18,17 @@ class BatteryMonitor:
         plugged = battery.power_plugged
 
         if percent >= 80 and plugged and self.last_state != "high":
-            notification.notify(
-                title="Batería al 80%",
-                message="Puedes desconectar el cargador.",
-                timeout=5,
+            self.notifier.show_toast(
+                "Batería al 80%",
+                "Puedes desconectar el cargador.",
+                duration=5,
+                threaded=True,
             )
             self.last_state = "high"
 
         elif percent <= 20 and not plugged and self.last_state != "low":
-            notification.notify(
-                title="Batería al 20%", message="Conecta el cargador.", timeout=5
+            self.notifier.show_toast(
+                "Batería al 20%", "Conecta el cargador.", duration=5, threaded=True
             )
             self.last_state = "low"
 
